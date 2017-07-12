@@ -23,3 +23,15 @@ class Index extends Controller
     }
 }
 
+
+//如果直接访问入口文件的话，由于URL中没有模块、控制器和操作，
+//      因此系统会访问默认模块（index）下面的默认控制器（Index）的默认操作（index），因此下面的访问是等效的
+/*
+http://localhost/tp5/public/index/demo1
+http://localhost/tp5/public/index/demo1/index/index/index
+*/
+
+//如果要访问控制器的hello方法，则需要使用完整的URL地址
+//http://localhost/tp5/public/index/demo1/index/hello/name/thinkphp
+//由于name参数为可选参数，因此也可以使用
+//http://localhost/tp5/public/index/demo1/index/hello
