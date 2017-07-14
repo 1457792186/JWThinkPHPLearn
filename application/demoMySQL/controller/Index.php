@@ -184,6 +184,429 @@ class Index
 
 
 
+        //9.链式操作
+        //查询十个满足条件的数据,并按照id倒序排列
+        $list = Db::name('data')
+            ->where('status',1)
+            ->field('id,name')
+            ->order('id','desc')
+            ->limit(10)
+            ->select();
+        dump($list);
+        //操作查询方法
+        /*
+        支持链式操作的查询方法包括
+        方法名                 描述
+        select              查询数据集
+        find                查询单个记录
+        insert              插入记录
+        udate               更新记录
+        delete              删除记录
+        value               查询值
+        column              查询列
+        chunk               分块查询
+        count等              聚合查询
+        */
+
+
+
+
+
+
+        //10.事务支持
+        //因为需要使用事务功能,所以表的类型应该为InnoDB,而不是MyISAM
+        //对于事务支持,最简单的方法就是transaction方法,只需要把需要执行的事务操作封装到闭包里面即可自动完成事务,如:
+        Db::transaction(function (){
+           Db::table('think_user')->delete(1);
+           Db::table('think_data')->insert(['id'=>28,'name'=>'thinkphp','status'=>1]);
+        });
+        //一旦think_data表写入失败的话,系统会自动回滚写入成功的话系统会自动提交当前事务
+        //  也可以手动控制事务的提交,上面的实现代码可以已改成:
+        Db::startTrans();
+        try{
+            Db::table('think_user')->delete(1);
+            Db::table('think_data')->insert(['id'=>28,'name'=>'thinkphp','status'=>1]);
+            Db::commit();//提交事务
+        }catch (\Exception $e){
+            Db::rollback();//回滚事务
+        }
+        //注意:事务操作只对支持事务的数据库,并且设置了数据表为事务类型才有效,在MySQL数据库中设置表类型为InnoDB。
+        //  并且事务操作必须使用同一个数据库连接
+
+
+
+
+
+
+        //*****************************************查询语言********************************************
+        //11.查询语言
+        //查询表达式:如查询think_data数据表中id等于1的数据
+        $result = Db::name('data')  //因为配置了前缀,所以表think_data可以写成data
+            ->where('id',1)
+            ->find();
+        dump($result);
+        //如果没有使用use引入Db类的话,需要使用
+        $result = \think\Db::name('data')  //因为配置了前缀,所以表think_data可以写成data
+        ->where('id',1)
+            ->find();
+        dump($result);
+        //find方法用于查找满足条件的第一个记录(及时查询条件有多个符合的数据),
+        //  如果查询成功,返回的是一个一维数组,没有满足条件的话则默认返回null(也支持设置是否抛出异常)
+        //上述查询实际等于SELECT * FROM 'think_data' WHERE 'id' = 1
+
+        /*
+        使用表达式查询时,where的参数依次为:
+        where(字段名,条件表达式,查询值)
+
+        可以支持的查询表达式包括如下:
+        表达式             含义
+        EQ、=            等于(=)
+        NEQ、            不等于()
+        GT、>            大于(>)
+        EGT、>=          大于等于(>=)
+        LT、<            小于(<)
+        ELT、<=          小于等于(<=)
+        LIKE             模糊查询
+        [NOT]BETWEEM     (不在)区间查询
+        [NOT]IN          (不在)IN查询
+        [NOT]NULL        查询字段是否(不)是NULL
+        [NOT]EXISTS      EXISTS查询
+        EXP              表达式查询,支持SQL语法
+
+        其中表达式不区分大小写
+        */
+
+        //11.2查询id大于等于1的数据
+        $result = Db::name('data')  //因为配置了前缀,所以表think_data可以写成data
+            ->where('id','>=',1)
+            ->limit(10)
+            ->select();
+        dump($result);
+        //因为要返回多条记录,所以使用select方法,并且使用limit方法限制返回的最多记录数
+        //  上述查询实际等于SELECT * FROM 'think_data' WHERE 'id' >= 1 LIMIT 10
+        //如果使用EXP条件表达式的话,表示是原生的SQL语句表达式,如:
+        $result = Db::name('data')
+        ->where('id','exp','>=1')
+            ->limit(10)
+            ->select();
+        dump($result);
+
+
+
+        //11.3查询id的范围
+        $result = Db::name('data')  //因为配置了前缀,所以表think_data可以写成data
+            ->where('id','in',[1,2,3])
+            ->select();
+        dump($result);
+        //  上述查询实际等于SELECT * FROM 'think_data' WHERE 'id' IN(1,2,3)
+        //如果使用EXP条件表达式的话,表示是原生的SQL语句表达式,如:
+        $result = Db::name('data')
+            ->where('id','between',[1,3])
+            ->select();
+        dump($result);
+
+
+
+        //11.4多字段查询
+        $result = Db::name('data')
+            ->where('id','between',[1,3])
+            ->where('name','like','%think%')    //模糊查询,查找字段内包含think的结果
+            ->select();
+        dump($result);
+        //  上述查询实际等于SELECT * FROM 'think_data' WHERE 'id' BETWEEN 1 AND 3 'name' LIKE '%think%'
+
+
+
+        //11.5查询是否为NULL
+        $result = Db::name('data')
+            ->where('name','null')
+            ->select();
+        dump($result);
+        //  上述查询实际等于SELECT * FROM 'think_data' WHERE 'name' IS NULL
+
+
+
+
+        //11.6批量查询
+        $result = Db::name('data')
+            ->where([
+                'id'=>['between','1,3'],
+                'name'=>['like','%think%'],   //模糊查询,查找字段内包含think的结果
+            ])->select();
+        dump($result);
+        //  上述查询实际等于SELECT * FROM 'think_data' WHERE 'id' BETWEEN 1 AND 3 'name' LIKE '%think%'
+
+        //实例2:使用OR和AND混合条件查询
+        $result = Db::name('data')
+            ->where('name','like','%think%')
+            ->where('id',['in',[1,2,3]],['between','5,8'],'or')
+            ->limit(10)
+            ->select();
+        dump($result);
+        //或者使用批量方式
+        $result = Db::name('data')
+            ->where([
+                'id'=>[['in',[1,2,3]],['between','5,8'],'or'],
+                'name'=>['like','%think%'],   //模糊查询,查找字段内包含think的结果
+            ])->select();
+        dump($result);
+        //  上述查询实际等于
+        //  SELECT * FROM 'think_data' WHERE ('id' IN (1,2,3) or 'id'BETWEEN '5' AND '8') AND 'name' LIKE '%think%' LIMIT 10
+
+
+
+
+
+        //11.7快捷查询
+        //如果有多个字段需要使用相同的查询条件,可以使用快捷查询,如,查询id和status都大于0的数据
+        $result = Db::name('data')
+            ->where('id&status','>',0)
+            ->limit(10)
+            ->select();
+        dump($result);
+        //生成的SQL为SELECT * FROM 'think_data' WHERE ('id' > 0 AND 'status' > 0) LIMIT 10
+        //也可以使用or方式查询
+        $result = Db::name('data')
+            ->where('id|status','>',0)
+            ->limit(10)
+            ->select();
+        dump($result);
+        //生成的SQL为SELECT * FROM 'think_data' WHERE ('id' > 0 OR 'status' > 0) LIMIT 10
+
+
+
+
+
+        //11.8视图查询
+        //如果需要快捷查询多个表的数据,可以使用试图查询,相当于在数据库创建了一个视图,但仅仅支持查询操作,如
+        $result = Db::view('user','id,name,status')
+            ->view('profile',['name'=>'truename','phone','email'],'profile.user_id=user.id')
+            ->where('status',1)
+            ->order('id desc')
+            ->limit(10)
+            ->select();
+        dump($result);
+        //生成的SQL语句为
+        /*
+        SELECT user.id,user.name,user.profile.name AS truename,profile.phone,profile.email
+            FROM think_user user INNER JOIN think_profile profile ON profile.user_id=user.id
+            WHERE user.status = 1 order by user.id desc
+        */
+
+
+
+
+
+
+        //11.9闭包查询
+        //find和select方法可以直接使用闭包查询
+        $result = Db::name('data')
+            ->select(function ($query){
+                $query->where('name','like','%think%')
+                    ->where('id','in','1,2,3')
+                    ->limit(10);
+            });
+        dump($result);
+        //生成的SQL语句为SELECT * FROM 'think_data' WHERE 'name' LIKE '%think%' AND 'id' IN ('1','2','3') LIMIT 10
+
+
+
+
+        //11.10使用Query对象
+        //可以事先封装Query对象,并传入select方法,例如:
+        $query = new \think\db\Query;
+        $query->name('data')->where('name','like','%think%')
+            ->where('id','in','1,2,3')
+            ->limit(10);
+        $result = Db::select($query);
+        dump($result);
+
+
+
+
+        //11.11获取数值
+        //如果仅仅是需要获取某行表的某个值,可以使用value方法:
+        //如:获取id为8的data数据的name字段值
+        $name = Db::name('data')
+                    ->where('id',8)
+                    ->value('name');
+        dump($name);
+
+
+
+
+
+        //11.12获取列数据
+        //也支持获取某个列的数据,使用column方法,如
+        $list = Db::name('data')
+            ->where('status',1)
+            ->column('name');
+        dump($list);
+        //获取以id为索引的name列数据,可以修改为
+        $list = Db::name('data')
+            ->where('status',1)
+            ->column('name','id');
+        dump($list);
+        //获取以主键为索引的数据集,可以修改为
+        $list = Db::name('data')
+            ->where('status',1)
+            ->column('*','id');
+        dump($list);
+
+
+
+
+
+        //11.13聚合查询
+        //thinkphp为聚合查询提供了便捷的方法
+        $count = Db::name('data')       //统计data表的数据
+            ->where('status',1)
+            ->count();
+        dump($count);
+        $max = Db::name('user')       //统计user表的最高分
+            ->where('status',1)
+            ->max('score');
+        dump($max);
+        /*
+        支持的聚合查询方法      方法               说明
+        count               统计数量            统计的字段名(必须)
+        max                 获取的最大值         统计的字段名(必须)
+        min                 获取的最小值         统计的字段名(必须)
+        avg                 获取的平均值         统计的字段名(必须)
+        sum                 获取总分            统计的字段名(必须)
+        */
+
+
+
+
+
+        //11.14字符串查询
+        //在必要的时候,可以使用原生的字符串查询,但建议是配合参数绑定一起使用,可以避免注入问题,如:
+        $result = Db::name('data')
+            ->where('id > :id AND name IS NOT NULL',['id' => 10])
+            ->select();
+        dump($result);
+        //可以直接在where方法中使用字符串查询条件,并支持第二个参数传入参数绑定,上面这个查询生成的SQL语句为:
+        //  SELECT * FROM 'think_data' WHERE (id > '10' AND name IS NOT NULL)
+
+
+
+
+
+        //11.15时间(日期)查询
+        //首先需要在think_data数据表新增create_time字段,用于日期查询的字段类型推荐使用datetime类型
+        //ThinkPHP5查询语言强化了对时间日期查询的支持,如:
+        //(1)查询创建时间大于2016-1-1的数据
+        $result = Db::name('data')
+            ->whereTime('create_time','>','2016-1-1')
+            ->select();
+        dump($result);
+        //(2)查询本周添加的数据
+        $result = Db::name('data')
+            ->whereTime('create_time','>','this week')
+            ->select();
+        dump($result);
+        //(3)查询最近两天添加的数据
+        $result = Db::name('data')
+            ->whereTime('create_time','>','-2 days')
+            ->select();
+        dump($result);
+        //(4)查询创建时间在2016-1-1~2016-7-1的数据
+        $result = Db::name('data')
+            ->whereTime('create_time','between',['2016-1-1','2016-7-1'])
+            ->select();
+        dump($result);
+        //日期查询对create_time字段类型没有要求,可以是int/string/timestamp/datetime/date中的任何一种,系统会自动识别进行处理
+
+        //还可以使用下面的人性化日期查询方式,如:
+        //(1)获取今天的数据
+        $result = Db::name('data')
+            ->whereTime('create_time','>','today')
+            ->select();
+        dump($result);
+        //(2)获取昨天的数据
+        $result = Db::name('data')
+            ->whereTime('create_time','>','yesterday')
+            ->select();
+        dump($result);
+        //(3)获取本周的数据
+        $result = Db::name('data')
+            ->whereTime('create_time','>','week')
+            ->select();
+        dump($result);
+        //(4)获取上周的数据
+        $result = Db::name('data')
+            ->whereTime('create_time','>','last week')
+            ->select();
+        dump($result);
+
+
+
+
+
+
+        //11.16分块查询
+        //分块查询是为查询大量数据的需要而设计的,例如think_data表已经有超过1万条记录,但是一次取那么大的数据会导致内存消耗特别大,
+        //      但是有这个需要(如查询所有数据并导出到execel),采用分块查询可以缓解这个问题
+        //使用分块查询,可以把1万条记录分成100次处理,每次处理100条数据,代码如下:
+        Db::name('data')
+            ->where('status','>',0)
+            ->chunk(100,function ($list){
+               //处理100条记录
+                foreach ($list as $data){
+
+                }
+            });
+        //第二个参数可以是有效的callback类型,包括使用闭包函数
+        //系统会按照主键顺序查询,每次查询100条,如果不希望使用主键进行查询或者没有主键,则需要指定查询的排序字段(但必须是唯一的),例如:
+        Db::name('user')
+            ->where('status','>',0)
+            ->chunk(100,function ($list){
+                //处理100条记录
+                foreach ($list as $data){
+
+                }
+            },'uid');
+        //然后交给callback进行数据处理,处理完毕后进行下一个100条记录,如果需要在中途中断后续查询,只需要在callback方法中返回false即可
+        Db::name('data')
+            ->where('status','>',0)
+            ->chunk(100,function ($list){
+                //处理100条记录
+                foreach ($list as $data){
+                    // 返回false则中断后续查询
+                    return false;
+                }
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     }
 
