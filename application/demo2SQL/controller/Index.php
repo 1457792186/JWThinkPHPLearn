@@ -1,4 +1,11 @@
 <?php
+/*创建表
+CREATE TABLE `think_data` (
+  `id` int(11) NOT NULL,
+  `data` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=gb2312;
+*/
+
 //首先在application/database.php添加连接信息
 /*
 // 数据库类型
