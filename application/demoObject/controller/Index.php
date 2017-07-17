@@ -220,7 +220,7 @@ class Index
         foreach ($list as $user){
             echo $user->nickname . '<br />';
             echo $user->email . '<br />';
-            echo date('Y/m/d',$user->birthday) . '<br />';
+            echo date('Y/m/d',$user->birthday) . '<br />';//echo $user->birthday.'<br />'; 直接输出,需要在User类定义读取器
             echo '---------------------' . '<br />';
         }
     }
@@ -325,7 +325,7 @@ class Index
 
 
 
-//******************************************************************
+
 
 
 
