@@ -28,13 +28,13 @@ return [
     '__pattern__' => [
         'id' => '\d+',
     ],
-    'demoObject/index'          => 'index/demoObject/index',
-    'demoObject/create'         => 'index/demoObject/create',
-    'demoObject/add'            => 'index/demoObject/add',
-    'demoObject/add_list'       => 'index/demoObject/addList',
-    'demoObject/update/:id'     => 'index/demoObject/update',
-    'demoObject/delete/:id'     => 'index/demoObject/delete',
-    'demoObject/:id'            => 'index/demoObject/read',
+    'demoObject/index'          => 'index/demoObject/index/index',
+    'demoObject/create'         => 'index/demoObject/index/create',
+    'demoObject/add'            => 'index/demoObject/index/add',
+    'demoObject/add_list'       => 'index/demoObject/index/addList',
+    'demoObject/update/:id'     => 'index/demoObject/index/update',
+    'demoObject/delete/:id'     => 'index/demoObject/index/delete',
+    'demoObject/:id'            => 'index/demoObject/index/read',
 ]
 */;
 
@@ -50,12 +50,12 @@ return [
         ':name' => ['index/hello', ['method' => 'post']],
     ],
 
-    'demoObject/index'          => 'index/demoObject/model/User/index',
-    'demoObject/create'         => 'index/demoObject/model/User/create',
-    'demoObject/add'            => 'index/demoObject/model/User/add',
-    'demoObject/add_list'       => 'index/demoObject/model/User/addList',
-    'demoObject/update/:id'     => 'index/demoObject/model/User/update',
-    'demoObject/delete/:id'     => 'index/demoObject/model/User/delete',
-    'demoObject/:id'            => 'index/demoObject/model/User/read',
+//    'demoObject/index'          => 'index/demoObject/index/index',
+    'demoObject/create'         => 'index/demoObject/index/create',
+    'demoObject/add'            => 'index/demoObject/index/add',
+    'demoObject/add_list'       => 'index/demoObject/index/addList',
+    'demoObject/update/:id'     => 'index/demoObject/index/update',
+    'demoObject/delete/:id'     => 'index/demoObject/index/delete',
+    'demoObject/:id'            => 'index/demoObject/index/read',
 
 ];
