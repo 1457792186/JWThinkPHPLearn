@@ -155,7 +155,7 @@ update                                                  仅更新的时候自动
 //如果status不是固定的,而是需要条件判断,那么可以定义修改器来配合自动完成
     protected $insert = ['status'];//定义自动完成的属性
     protected  function setStatusAttr($value,$data){//status属性修改器
-        return '夏夜' == $data['nickname']?1:2;
+        return '夏夜' == $data['nickname']?2:1;
     }
     protected function getStatusAttr($value){//status属性读取器
         $status = [-1=>'删除',0=>'禁用',1=>'正常',2=>'待审核'];
@@ -242,7 +242,179 @@ protected function getStatusAttr($value){
 */
 
 
+//1.基本定义
+//ThinkPHP5的关联采用了对象化的操作模式,无需继承不同的模型类,只要把关联定义成一个方法,
+//  并且直接通过当前模型对象的属性名获取定义的关联数据
 
+//例:如果有一个关联的模型对象Book,每个用户多本书,则需要定义关联方法,如
+    //定义关联方法
+    public function books(){//books方法是一个关联方法,方法名可随意命名,但要注意避免和User模型对象的字段属性冲突
+        return $this->hasMany('Book');
+        /*
+        一般来说,关联关系包括:
+        一对一关联:HAS_ONE以及相对的BELONGS_TO
+        一对多关联:HAS_MANY以及相对的BELONGS_TO
+        多对多关联: BELONGS_TO_MANY
+        */
+    }
+    //实际获取关联数据的时候
+    /*
+    $user = User::get(5);   获取id=5的用户
+    dump($user->books);     获取User对象的Book关联对象
+    $user->books()->where('name','thinkphp')->find();   执行关联的Book对象的查询
+    */
+
+
+
+//2.一对一关联
+//一对一关联是一种最简单的关联,比如每个用户都有一个身份证,每个班级都有一个班主任一样:
+//首先,创建数据表think_user和think_profile
+/*
+think_profile表:
+CREATE TABLE `db_study`.`think_profile` (
+    `id` INT(6) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `truename` VARCHAR(25) NOT NULL ,
+    `birthday` INT(11) NOT NULL ,
+    `address` VARCHAR(255) NULL DEFAULT NULL ,
+    `email` VARCHAR(255) NULL DEFAULT NULL ,
+    `user_id` INT(6) UNSIGNED NOT NULL ,
+    PRIMARY KEY (`id`)) ENGINE = InnoDB;
+*/
+
+
+//2.1关联定义
+//以用户和档案的一对一关联为例,在User模型类中添加关联定义方法,然后在方法中调用hasOne方法即可:
+    public function profile(){
+        //return $this->hasOne('Profile');
+
+        //hasOne有五个参数,分别是'
+        //hasOne(关联模型名,关联外键,主键,别名定义,join类型)
+
+        //默认的外键是当前模型名_id,主键则是自动获取,如果表设计符合这一规范,只需要设置关联的模型名即可
+
+        //通常关联模型和当前模型都是相同的命名空间,如果关联模型在不同的控件,需要制定完整的类名,如
+        //return $this->hasOne('\app\demoObject\Profile');
+
+        //在关联查询的时候,默认使用当前模型的名称(小写)作为数据表别名,可以指定查询使用的数据表别名
+        return $this->hasOne('Profile','user_id','id',['user'=>'member','profile'=>'info']);
+
+        //要进行模型的关联操作,必须同时定义好关联模型Profile
+    }
+
+
+
+//2.2关联写入
+//    控制器的add5操作
+
+
+//2.3关联查询
+//    控制器的read3操作
+
+
+//2.4关联更新
+//  控制器的update3操作
+
+
+//2.5关联删除
+//  控制器的delete3操作
+
+
+
+
+//3.一对一多关联
+//每个作者写有多本书就是一个典型的一对多关联,首先创建如下数据表:
+/*
+CREATE TABLE `db_study`.`think_book` (
+    `id` INT(8) UNSIGNED NOT NULL AUTO_INCREMENT ,
+    `title` VARCHAR(255) NOT NULL ,
+    `publish_time` INT(11) UNSIGNED NULL DEFAULT NULL ,
+    `create_time` INT(11) UNSIGNED NOT NULL ,
+    `update_time` INT(11) UNSIGNED NOT NULL ,
+    `status` TINYINT(1) NOT NULL ,
+    `user_id` INT(6) NOT NULL , PRIMARY KEY (`id`)
+) ENGINE = InnoDB;
+*/
+
+
+//3.1关联定义
+    public function bookList(){
+//        return $this->hasMany('Book');
+
+        //hasMany有四个参数,分别是'
+        //hasMany(关联模型名,关联外键,关联模型主键,别名定义)
+
+        //默认的外键是当前模型名_id,主键则是自动获取,如果表设计符合这一规范,只需要设置关联的模型名即可
+
+        //通常关联模型和当前模型都是相同的命名空间,如果关联模型在不同的控件,需要制定完整的类名,如
+        //return $this->hasMany('\app\demoObject\Book');
+
+        //在关联查询的时候,默认使用当前模型的名称(小写)作为数据表别名,可以指定查询使用的数据表别名
+        return $this->hasMany('Book','user_id','id');
+
+        //要进行模型的关联操作,必须同时定义好关联模型Book
+    }
+
+//3.2关联新增
+//    控制器的add7操作
+
+
+//3.3关联查询
+//    控制器的read5操作
+
+
+//3.4关联更新
+//  控制器的update4操作
+
+
+//3.5关联删除
+//  控制器的delete4操作
+
+
+
+
+//4.多对多关联
+//一个用户会有多个角色,同时一个角色也会包含多个用户,这是一个多对多的关联,先创建一个think_role结构如下:
+/*
+CREATE TABLE `db_study`.`think_role` (
+    `id` INT(5) NOT NULL AUTO_INCREMENT ,
+    `name` VARCHAR(25) NOT NULL ,
+    `title` VARCHAR(50) NOT NULL ,
+    PRIMARY KEY (`id`)) ENGINE = InnoDB;
+*/
+//多对多关联通常会有一个中间表,也成为枢纽表,所以需要创建一个用户角色的中间表,此处创建了一个think_access表,结构如下:
+/*
+CREATE TABLE `db_study`.`think_access` (
+    `user_id` INT(6) UNSIGNED NOT NULL ,
+    `role_id` INT(5) UNSIGNED NOT NULL
+) ENGINE = InnoDB;
+*/
+
+
+//4.1关联定义
+    //定义多对多关联
+    public function roles(){
+        //  belongsToMany(关联模型名,中间表名,关联外键,关联模型主键,别名定义)
+        return $this->belongsToMany('User','think_access');
+        //要进行模型的关联操作,必须同时定义好关联模型Role
+    }
+
+//    对于枢纽表并不需要创建模型类,在多对多关联关系中,并不需要直接操作枢纽表
+
+
+//4.2关联新增
+//    控制器的add9操作
+
+
+//4.3关联查询
+//    控制器的read9操作
+
+
+//4.4关联更新
+//  控制器的update6操作
+
+
+//4.5关联删除
+//  控制器的delete6操作
 
 
 

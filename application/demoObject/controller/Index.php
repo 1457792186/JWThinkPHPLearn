@@ -103,6 +103,8 @@ class User extends Model
 
 namespace app\demoObject\controller;
 
+use app\demoObject\model\Book;
+use app\demoObject\model\Profile;
 use  app\demoObject\model\User as UserModel;
 use think\Validate;    //导入模型类。as UserModel为起别名,防止命名冲突,可无
 
@@ -197,7 +199,8 @@ class Index
         $user = UserModel::get($id);
         echo $user->nickname . '<br />';
         echo $user->email . '<br />';
-        echo date('Y/m/d',$user->birthday) . '<br />';
+        echo $user->birthday.'<br />'; //直接输出,需要在User类定义读取器
+        //若没有定义读取器,使用 echo date('Y/m/d',$user->birthday) . '<br />';
     }
     //模型的get方法和Db的find方法返回结果的区别在于,Db默认返回的是数组,而模型发get方法返回的一定是当前的模型对象实例
     //  系统为模型实现了ArrayAccess接口,因此可以通过数组的方式访问对象实例,吧控制器的read方法修改如下:
@@ -206,7 +209,8 @@ class Index
         $user = UserModel::get($id);
         echo $user['nickname'] . '<br />';
         echo $user['email'] . '<br />';
-        echo date('Y/m/d',$user['birthday']) . '<br />';
+        echo $user->birthday.'<br />';//直接输出,需要在User类定义读取器
+        //若没有定义读取器,使用 echo date('Y/m/d',$user['birthday']) . '<br />';
     }
 
 
@@ -221,7 +225,8 @@ class Index
         foreach ($list as $user){
             echo $user->nickname . '<br />';
             echo $user->email . '<br />';
-            echo date('Y/m/d',$user->birthday) . '<br />';//echo $user->birthday.'<br />'; 直接输出,需要在User类定义读取器
+            echo $user->birthday.'<br />'; //直接输出,需要在User类定义读取器
+            //若没有定义读取器,使用 echo date('Y/m/d',$user->birthday) . '<br />';
             echo '---------------------' . '<br />';
         }
     }
@@ -234,7 +239,8 @@ class Index
         foreach ($list as $user){
             echo $user->nickname . '<br />';
             echo $user->email . '<br />';
-            echo date('Y/m/d',$user->birthday) . '<br />';
+            echo $user->birthday.'<br />'; //直接输出,需要在User类定义读取器
+            //若没有定义读取器,使用 echo date('Y/m/d',$user->birthday) . '<br />';
             echo '---------------------' . '<br />';
         }
     }
@@ -245,7 +251,8 @@ class Index
         foreach ($list as $user){
             echo $user->nickname . '<br />';
             echo $user->email . '<br />';
-            echo date('Y/m/d',$user->birthday) . '<br />';
+            echo $user->birthday.'<br />'; //直接输出,需要在User类定义读取器
+            //若没有定义读取器,使用 echo date('Y/m/d',$user->birthday) . '<br />';
             echo '---------------------' . '<br />';
         }
     }
@@ -439,38 +446,279 @@ class Index
 
 //****************************************关联********************************************
 //User模型内进行修改
+//新建Profile关联模型类
+
+
+
+//————————————————————————一对一关联————————————————————————
+//1.User模型添加关联后,控制器关联写入方法
+    public function add5(){//http://localhost/tp5/public/index/demoObject/index/add5
+        $user = new UserModel();
+        $user->nickname = '流年';
+        $user->email = 'thinkphp@qq.com';
+        $user->birthday = strtotime('1997-03-05');
+        if ($user->save()){
+            //写入关联数据
+            $profile = new Profile();
+            $profile->truename = '刘念';
+            $profile->birthday = $user->birthday;
+            $profile->address = '中国上海';
+            $profile->email = $user->email;
+            $user->profile()->save($profile);
+            return  '用户['.$user->nickname.':'.$user->id.']新增成功';
+        }else{
+            return $user->getError();
+        }
+    }
+    //关联模型的写入调用了profile()方法,该方法返回的是一个Relation对象,执行save方法会自动传入当前模型User的主键作为关联键值,
+    //  所以不需要手动传入Prodile模型的user_id属性
+
+
+    //save方法也可以使用数组而不是Profile对象,如
+    public function add6(){//http://localhost/tp5/public/index/demoObject/index/add6
+        $user = new UserModel();
+        $user->nickname = '流年';
+        $user->email = 'thinkphp@qq.com';
+        $user->birthday = strtotime('1997-03-05');
+        if ($user->save()){
+            //写入关联数据
+            $profile['truename'] = '刘念';
+            $profile['birthday'] = $user->birthday;
+            $profile['address'] = '中国上海';
+            $profile['email'] = $user->email;
+            $user->profile()->save($profile);
+            return  '用户['.$user->nickname.':'.$user->id.']新增成功';
+        }else{
+            return $user->getError();
+        }
+    }
+
+
+
+//2.关联查询:
+//一对一的关联查询,直接把关联对象当成属性来用即可:如
+    public function read3($id){//http://localhost/tp5/public/index/demoObject/index/read3/id/21
+        $user = UserModel::get($id);
+        echo $user->nickname . '<br />';
+        echo $user->email . '<br />';
+        echo $user->profile->truename . '<br />';
+        echo $user->profile->address . '<br />';
+    }
+//  以上关联查询的时候,只有在获取关联对象($user->profile)的时候才会进行实际的关联查询,缺点是会可能进行多次查询,
+//      但可以使用预载入查询来提高查询性能,对于一对一关联来说,只需要进行一次查询即可获取关联对象数据,如
+    public function read4($id){//http://localhost/tp5/public/index/demoObject/index/read4/id/21
+        $user = UserModel::get($id,'profile');
+        echo $user->nickname . '<br />';
+        echo $user->email . '<br />';
+        echo $user->profile->truename . '<br />';
+        echo $user->profile->address . '<br />';
+    }
+
+
+//3.关联更新
+//一对一的关联更新如下:
+    public function update3($id){//http://localhost/tp5/public/index/demoObject/index/update3/id/21
+        $user = UserModel::get($id);
+        $user->nickname = '夏夜';
+        if ($user->save()){
+            //更新关联数据
+            $user->profile->email = 'shaye@qq.com';
+            $user->profile->save();
+            return '用户['.$user->nickname.':'.$user->id.']更新成功';
+        }else{
+            return $user->getError();
+        }
+    }
+
+
+
+//4.关联删除
+    public function delete3($id){//http://localhost/tp5/public/index/demoObject/index/delete3/id/21
+        $user = UserModel::get($id);
+        if ($user->delete()){
+            //删除关联数据
+            $user->profile->delete();
+            return '用户['.$user->nickname.':'.$user->id.']删除成功';
+        }else{
+            return $user->getError();
+        }
+    }
 
 
 
 
 
+//————————————————————————一对多关联————————————————————————
+//1.User模型添加关联后,控制器关联新增方法
+    public function add7(){//http://localhost/tp5/public/index/demoObject/index/add7
+        $user = UserModel::get(21);
+        if ($user){
+            $book = new Book();
+            $book->title = 'ThinkPHP快速入门';
+            $book->publish_time = '2016-08-06';
+            $user->bookList()->save($book);
+            return  '添加Book成功';
+        }else{
+            return '用户不存在';
+        }
+    }
+
+    //对于一对多关联,也可以批量增加数据,如
+    public function add8(){//http://localhost/tp5/public/index/demoObject/index/add8
+        $user = UserModel::get(21);
+        if ($user){
+            $books = [
+                ['title' => 'ThinkPHP快速入门','publish_time'=>'2016-08-06'],
+                ['title' => 'ThinkPHP开发手册','publish_time'=>'2016-05-06'],
+            ];
+            $user->bookList()->saveAll($books);
+            return  '添加Book成功';
+        }else{
+            return '用户不存在';
+        }
+    }
+
+
+
+//2.关联查询:
+//可以直接调用模型的属性获取全部关联数据:如
+    public function read5($id){//http://localhost/tp5/public/index/demoObject/index/read5/id/21
+        $user = UserModel::get($id);
+        $books = $user->bookList();
+        dump($books);
+    }
+//      一对多同样可以使用预载入查询
+    public function read6($id){//http://localhost/tp5/public/index/demoObject/index/read6/id/21
+        $user = UserModel::get($id,'bookList');
+        $books = $user->bookList();
+        dump($books);
+    }
+//    一对多预载入查询会在原先延迟查询的基础上增加一次查询,可以解决N+1次查询问题
+//        如果要过滤查询,可以调用关联方法:
+    public function read7(){//http://localhost/tp5/public/index/demoObject/index/read7
+        $user = UserModel::get(21);
+        //获取status为1的关联数据
+        $books = $user->bookList()->where('status',1)->select();
+        dump($books);
+
+        echo '-----------------------------'.'<br />';
+        //获取作者写的某本书
+        $book = $user->bookList()->getByTitle('ThinkPHP开发手册');
+        dump($book);
+    }
+//还可以根据关联函数来查询当前模型数据,如:
+    public function read8(){//http://localhost/tp5/public/index/demoObject/index/read8
+        //查询写过书的作者
+        $user = UserModel::has('bookList')->select();
+        dump($user);
+
+        echo '-----------------------------'.'<br />';
+        //查询写过三本以上书的作者
+        $user = UserModel::has('bookList','>=',3)->select();
+        dump($user);
+
+        echo '-----------------------------'.'<br />';
+        //查询写过ThinkPHP开发手册的作者
+        $user = UserModel::has('bookList',['title'=>'ThinkPHP开发手册'])->select();
+        dump($user);
+    }
+
+
+
+//3.关联更新
+//一对一的关联更新如下:
+    public function update4($id){//http://localhost/tp5/public/index/demoObject/index/update4/id/21
+        $user = UserModel::get($id);
+        $book = $user->bookList()->getByTitle('ThinkPHP开发手册');
+        $book->title = '幻想乡缘起';
+        if ($book->save()){
+            return '更新成功';
+        }else{
+            return '更新失败';
+        }
+    }
+
+    //使用查询构建器的update方法进行更新(但可能无法触发关联模型的事件)
+    public function update5($id){//http://localhost/tp5/public/index/demoObject/index/update5/id/21
+        $user = UserModel::get($id);
+        $book = $user->bookList()->where('title','ThinkPHP5开发手册')->update(['title'=>'ThinkPHP快速入门']);
+        if ($book){
+            return '更新成功';
+        }else{
+            return '更新失败';
+        }
+    }
+
+
+//4.关联删除
+    //删除部分关联数据
+    public function delete4($id){//http://localhost/tp5/public/index/demoObject/index/delete4/id/21
+        $user = UserModel::get($id);
+        $book = $user->bookList()->getByTitle('ThinkPHP开发手册');
+        $book->delete();
+    }
+    //删除所有的关联数据
+    public function delete5($id){//http://localhost/tp5/public/index/demoObject/index/delete5/id/21
+        $user = UserModel::get($id);
+        if ($user->delete()){
+            $user->bookList()->delete();
+        }
+    }
 
 
 
 
 
+//————————————————————————多对多关联————————————————————————
+//1.User模型添加关联后,控制器关联新增方法
+    public function add9(){//http://localhost/tp5/public/index/demoObject/index/add9
+        $user = UserModel::get(21);
+        if ($user){
+            $book = new Book();
+            $book->title = 'ThinkPHP快速入门';
+            $book->publish_time = '2016-08-06';
+            $user->bookList()->save($book);
+            return  '添加Book成功';
+        }else{
+            return '用户不存在';
+        }
+    }
 
 
 
 
 
+//2.关联查询:
+//可以直接调用模型的属性获取全部关联数据:如
+    public function read9($id){//http://localhost/tp5/public/index/demoObject/index/read9/id/21
+        $user = UserModel::get($id);
+        $books = $user->bookList();
+        dump($books);
+    }
 
 
 
+//3.关联更新
+//一对一的关联更新如下:
+    public function update6($id){//http://localhost/tp5/public/index/demoObject/index/update6/id/21
+        $user = UserModel::get($id);
+        $book = $user->bookList()->getByTitle('ThinkPHP开发手册');
+        $book->title = '幻想乡缘起';
+        if ($book->save()){
+            return '更新成功';
+        }else{
+            return '更新失败';
+        }
+    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+//4.关联删除
+    //删除部分关联数据
+    public function delete6($id){//http://localhost/tp5/public/index/demoObject/index/delete6/id/21
+        $user = UserModel::get($id);
+        $book = $user->bookList()->getByTitle('ThinkPHP开发手册');
+        $book->delete();
+    }
 
 
 
