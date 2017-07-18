@@ -159,6 +159,7 @@ update                                                  仅更新的时候自动
     }
     protected function getStatusAttr($value){//status属性读取器
         $status = [-1=>'删除',0=>'禁用',1=>'正常',2=>'待审核'];
+        return $status[$value];
     }
 
 
@@ -166,6 +167,50 @@ update                                                  仅更新的时候自动
 
 //*****************************查询范围*********************************
 
+//对于一些常用的查询条件,我们可以封装成查询范围来进行方便的调用
+//如:邮箱地址为thinkphp@qq.com和status为1这两个常用查询条件,可以定义模型类的两个查询范围方法:
+//查询方法的定义规范为:
+//  scope + 查询范围名称
+
+/*与上面重复的方法
+
+//定义类型转换
+protected $type = [
+        //设置birthday为时间戳类型
+        'birthday' => 'timestamp:Y/m/d'
+    ];
+
+//定义自动完成的属性
+protected $insert = ['status'];
+
+//status属性修改器
+protected  function setStatusAttr($value,$data){
+        return '夏夜' == $data['nickname']?1:2;
+    }
+
+//status属性读取器
+protected function getStatusAttr($value){
+        $status = [-1=>'删除',0=>'禁用',1=>'正常',2=>'待审核'];
+        return $status[$value];
+    }
+*/
+//email查询,支持额外参数
+    protected function scopeEmail($query,$email='thinkphp@qq.com'){
+        $query->where('email',$email);
+    }
+//status查询
+    protected function scopeStatus($query){
+        $query->where('status','1');
+    }
+//测试地址:http://localhost/tp5/public/index/demoObject/index/autoTest
+
+//全局查询范围
+//可以给模型定义全局的查询范围,在模型类添加一个静态的base方法即可,如,给模型类增加一个全局查询范围,用于查询状态为1的数据
+    protected static function base($query){
+        //查询状态为1的数据
+        $query->where('status',1);
+    }
+    //当模型进行查询的时候,会自动带上全局查询范围的条件
 
 
 
@@ -173,14 +218,28 @@ update                                                  仅更新的时候自动
 
 
 
-
-
-
-
-
-
-
-
+//********************************关联**************************************
+//关联的定义及基础用法:
+/*
+基本定义
+一对一关联
+    关联定义
+    关联写入
+    关联查询
+    关联更新
+    关联删除
+    一对一多关联
+        关联定义
+        关联新增
+        关联查询
+        关联更新
+        关联删除
+    多对多关联
+        关联定义
+        关联新增
+        关联删除
+        关联查询
+*/
 
 
 

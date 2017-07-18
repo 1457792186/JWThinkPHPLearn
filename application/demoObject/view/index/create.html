@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--
+文件application/demoObject/view/index/create.html
+demoObject(目录名)/view(文件夹名)/index(对应类名,同时文件夹名一致)/create.html(方法名与html文件名一致)
+></!-->
+
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>创建用户</title>
+
+    <!--设置样式 ></!-->
+    <style>
+        body{
+            font-family: "Microsoft Yahei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            padding: 5px;
+        }
+        .form{
+            padding: 15px;
+            font-size: 16px;
+        }
+        .form .text{
+            padding: 3px;
+            margin: 2px 10px;
+            width: 240px;
+            height: 24px;
+            line-height: 28px;
+            border: 1px solid #D4D4D4;
+        }
+        .form .btn{
+            margin: 6px;
+            padding: 6px;
+            width: 120px;
+
+            font-size: 16px;
+            border: 1px solid #D4D4D4;
+            cursor: pointer;
+            background: #EEEEEE;
+        }
+        a{
+            color: #868686;
+            cursor: pointer;
+        }
+        a:hover{
+            text-decoration: underline;
+        }
+        h2{
+            color: #4288ce;
+            font-weight: 400;
+            padding: 6px 0;
+            margin: 6px 0 0;
+            font-size: 28px;
+            border-bottom: 1px solid #EEEEEE;
+        }
+        div{
+            margin: 8px;
+        }
+        .info{
+            padding: 12px 0;
+            border-bottom: 1px solid #EEEEEE;
+        }
+        .copyright{
+            margin-top: 24px;
+            padding: 12px 0;
+            border-top: 1px solid #EEEEEE;
+        }
+    </style>
+</head>
+<body>
+<h2>创建用户</h2>
+<form method="post" class="form" action="http://localhost/tp5/public/index/demoObject/index/add3">
+    <!--或者为{:url('demoObject/index/add3')}
+        调用方法http://localhost/tp5/public/index/demoObject/index/add3
+        http://localhost/tp5/public/index/demoObject为当前文件位置
+        /index/add3为具体方法
+     ><!-->
+
+    昵称:<input type="text" class="text" name="nickname"><br/>
+    邮箱:<input type="text" class="text" name="email"><br/>
+    生日:<input type="text" class="text" name="birthday"><br/>
+    <input type="hidden" name="_token_" value="{$Request.token}" />
+    <input type="submit" class="btn" value="提交">
+</form>
+
+<div class="copyright">
+    <a title="官网" href="http://www.baidu.com"></a>
+    <span>V5</span>
+    <span>{测试超链接}</span>
+</div>
+
+</body>
+</html>
+
+<!--在application/demoObject/controller/index.php文件 添加对应create方法 -->

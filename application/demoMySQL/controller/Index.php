@@ -189,7 +189,7 @@ class Index
         $list = Db::name('data')
             ->where('status',1)
             ->field('id,name')
-            ->order('id','desc')
+            ->order('id','desc')        //asc为从小到大
             ->limit(10)
             ->select();
         dump($list);

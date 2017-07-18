@@ -103,7 +103,8 @@ class User extends Model
 
 namespace app\demoObject\controller;
 
-use  app\demoObject\model\User as UserModel;    //导入模型类。as UserModel为起别名,防止命名冲突,可无
+use  app\demoObject\model\User as UserModel;
+use think\Validate;    //导入模型类。as UserModel为起别名,防止命名冲突,可无
 
 class Index
 {
@@ -324,20 +325,120 @@ class Index
 
 
 
+//************************************User模型修改后自动方法&查询********************************************************
+    //http://localhost/tp5/public/index/demoObject/index/autoTest
+    public function autoTest()
+    {
+
+        $list = UserModel::scope('email,status')->select();//编写了查询范围,所以查询的是邮箱为thinkphp@qq.com并且status为1的数据
+        /*或者:追加新的查询及链式操作
+            $list = UserModel::scope('email,status',function ($query){
+                $query->order('id','asc');
+            })->select();
+        */
+
+        foreach ($list as $user){
+            echo $user->nickname . '<br />';
+            echo $user->email . '<br />';
+            echo $user->birthday . '<br />';    //编写了读取器和修改器,所以不需要转换时间戳格式
+            echo $user->status . '<br />';      //编写了自动完成,所以建立时插入数据
+        }
+    }
+
+
+    //若查询范围方法支持额外的参数,例如scopeEmail添加email参数
+    //http://localhost/tp5/public/index/demoObject/index/autoTestEmail
+    public function autoTestEmail()
+    {
+        $list = UserModel::scope('email','xiaye@qq.com')->select();
+
+        foreach ($list as $user){
+            echo $user->nickname . '<br />';
+            echo $user->email . '<br />';
+            echo $user->birthday . '<br />';    //编写了读取器和修改器,所以不需要转换时间戳格式
+            echo $user->status . '<br />';      //编写了自动完成,所以建立时插入数据
+        }
+    }
+
+
+
+
+//****************************************输入与验证********************************************
+//使用表单提交数据完成模型的对象操作
+//  主要包括:1.表单提交2.表单验证3.错误提示4.自定义验证规则5.控制器验证
+
+//1.表单提交
+//首先创建一个时涂抹办文件application/demoObject/view/index/create.html
+//      demoObject(目录名)/view(文件夹名)/index(对应类名,同时文件夹名一致)/create.html(方法名与html文件名一致)
+//代码见application/demoObject/view/index/create.html文件
+
+//添加对应create方法
+    public function create(){//http://localhost/tp5/public/index/demoObject/index/create
+        return view();
+        /*
+         view方法是系统封装的助手函数用于快速渲染模板文件,此处没有传入模板文件,则按照系统默认的解析规则会自动渲染当前操作方法对应的模板文件,
+            所以和下面的方式是一致的
+        return view('index/create');
+        */
+    }
+
+
+
+//2.表单验证&3.错误提示&4.自定义验证规则
+//给表单提交添加数据验证
+//  添加一个User验证器(application/demoObject/validate/User.php)
+//  对验证器进行定义
+//使用验证器则在save方法前添加一个validate参数即可
+
+//新增add3方法
+    public function add3()
+    {
+        $user = new UserModel();
+        if ($user->allowField(true)->validate(true)->save(input('post.'))){
+            //$user->allowField(true)->save(input('post.'))     原始样式插入
+            //$user->allowField(true)->validate(true)->save(input('post.')) 此为有验证的调用
+
+
+            return  '用户['.$user->nickname.':'.$user->id.']新增成功';
+        }else{
+            return $user->getError();
+        }
+    }
+
+
+//5.控制器验证
+//新增add4方法,需要测试时修改为add3方法
+    public function add4()
+    {
+        $data = input('post.');
+        //数据验证
+        $result = $this->validate($data,'User');
+        if (true !== $result){
+            return $result;
+        }
+
+        //如果一些个别的验证没有在验证器里定义,也可以使用静态方法单独处理,
+        //  例如下面对birthday字段单独处理是否是一个有效的日期格式
+        $check = Validate::is($data['birthday'],'date');
+        if (false === $check){
+            return '生日日期格式不合法';
+        }
+
+        $user = new UserModel();
+        //数据保存
+        if ($user->allowField(true)->save(input('post.'))){
+            return  '用户['.$user->nickname.':'.$user->id.']新增成功';
+        }else{
+            return $user->getError();
+        }
+    }
 
 
 
 
 
-
-
-
-
-
-
-
-
-
+//****************************************关联********************************************
+//User模型内进行修改
 
 
 
