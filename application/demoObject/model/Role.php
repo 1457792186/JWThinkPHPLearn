@@ -32,7 +32,7 @@ class Role extends Model
     //如果需要定义对应的关联,则可以使用belongsToMany方法
     //  belongsToMany(关联模型名,中间表名,关联外键,关联模型主键,别名定义)
     public function user(){
-        return $this->belongsToMany('User','think_access');
+        return $this->belongsToMany('User','access');   //    access为think_access表,因为已经定义了数据表前缀所以可写为access
     }
 
 }

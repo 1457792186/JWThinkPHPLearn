@@ -105,10 +105,13 @@ namespace app\demoObject\controller;
 
 use app\demoObject\model\Book;
 use app\demoObject\model\Profile;
-use  app\demoObject\model\User as UserModel;
-use think\Validate;    //导入模型类。as UserModel为起别名,防止命名冲突,可无
+use app\demoObject\model\Role;
+use  app\demoObject\model\User as UserModel;//导入模型类。as UserModel为起别名,防止命名冲突,可无
 
-class Index
+use think\Validate;
+use think\Controller;
+
+class Index extends Controller
 {
     public function index()
     {
@@ -116,7 +119,7 @@ class Index
     }
 
 
-
+//************************************1.基础操作********************************
     //6.2基础操作:
     //对象化操作主要内容包含:
     //1.新增数据
@@ -332,7 +335,7 @@ class Index
 
 
 
-//************************************User模型修改后自动方法&查询********************************************************
+//************************************2.User模型修改后自动方法&查询********************************************************
     //http://localhost/tp5/public/index/demoObject/index/autoTest
     public function autoTest()
     {
@@ -370,7 +373,7 @@ class Index
 
 
 
-//****************************************输入与验证********************************************
+//****************************************3.输入与验证********************************************
 //使用表单提交数据完成模型的对象操作
 //  主要包括:1.表单提交2.表单验证3.错误提示4.自定义验证规则5.控制器验证
 
@@ -444,7 +447,7 @@ class Index
 
 
 
-//****************************************关联********************************************
+//****************************************4.关联********************************************
 //User模型内进行修改
 //新建Profile关联模型类
 
@@ -626,7 +629,7 @@ class Index
 
 
 //3.关联更新
-//一对一的关联更新如下:
+//一对多的关联更新如下:
     public function update4($id){//http://localhost/tp5/public/index/demoObject/index/update4/id/21
         $user = UserModel::get($id);
         $book = $user->bookList()->getByTitle('ThinkPHP开发手册');
@@ -672,71 +675,302 @@ class Index
 //————————————————————————多对多关联————————————————————————
 //1.User模型添加关联后,控制器关联新增方法
     public function add9(){//http://localhost/tp5/public/index/demoObject/index/add9
-        $user = UserModel::get(21);
-        if ($user){
-            $book = new Book();
-            $book->title = 'ThinkPHP快速入门';
-            $book->publish_time = '2016-08-06';
-            $user->bookList()->save($book);
-            return  '添加Book成功';
+        //给某个用户增加编辑角色,并且由于这个角色还没创建过,所以可以使用如下方式:
+        $user = UserModel::getByNickname('流年');
+
+        //新增用户角色,,并自动写入枢纽表
+        if ($user->roles()->save(['name'=>'editor','title'=>'编辑'])){
+            return '用户角色新增成功';
         }else{
-            return '用户不存在';
+            return '用户角色新增失败';
         }
     }
 
+    //也可以批量新增用户的角色
+    public function add10(){//http://localhost/tp5/public/index/demoObject/index/add10
+        //给某个用户增加编辑角色,并且由于这个角色还没创建过,所以可以使用如下方式:
+        $user = UserModel::getByNickname('流年');
+        //新增用户角色,,并自动写入枢纽表
+        if ($user->roles()->saveAll([
+            ['name'=>'leader','title'=>'领导'],
+            ['name'=>'admin','title'=>'管理员'],
+        ])){
+            return '用户角色新增成功';
+        }else{
+            return '用户角色新增失败';
+        }
+    }
 
+    //如果给另外一个用户增加编辑角色,由于该角色已经存在了,所以只需要使用attach方法增加枢纽表的关联数据
+    //关联新增数据
+    public function add11(){//http://localhost/tp5/public/index/demoObject/index/add11
+        $user = UserModel::getByNickname('夏夜');
+        $role = Role::getByName('editor');
+        //添加枢纽表数据
+        if ($user->roles()->attach($role)){
+            return '用户角色新增成功';
+        }else{
+            return '用户角色新增失败';
+        }
+    }
+
+    //或者直接使用角色id添加关联数据
+    //关联新增数据
+    public function add12(){//http://localhost/tp5/public/index/demoObject/index/add12
+        //给某个用户增加编辑角色,并且由于这个角色还没创建过,所以可以使用如下方式:
+        $user = UserModel::getByNickname('夏夜');
+        //添加枢纽表数据
+        if ($user->roles()->attach(1)){
+            return '用户角色新增成功';
+        }else{
+            return '用户角色新增失败';
+        }
+    }
 
 
 
 //2.关联查询:
-//可以直接调用模型的属性获取全部关联数据:如
-    public function read9($id){//http://localhost/tp5/public/index/demoObject/index/read9/id/21
+//获取用户流年的所有角色的话,直接使用
+    public function read9($id){//http://localhost/tp5/public/index/demoObject/index/read9/id/19
+        $user = UserModel::getByNickname('流年');
+        dump($user->roles());
+    }
+
+    //同样支持多对多关联使用预载入查询
+    public function read10($id){//http://localhost/tp5/public/index/demoObject/index/read10/id/19
+        $user = UserModel::get(19,'roles');
+        dump($user->roles());
+    }
+
+
+//3.关联删除
+    //如果需要解除用户的管理角色,可以使用detach方法删除关联的枢纽表数据,但不会删除关联模型数据,如
+    //关联删除数据
+    public function delete6($id){//http://localhost/tp5/public/index/demoObject/index/delete6/id/19
         $user = UserModel::get($id);
-        $books = $user->bookList();
-        dump($books);
+        $role = Role::getByName('admin');
+        //删除关联数据 但不删除关联模型数据
+        $user->roles()->detach($role);
+        return '用户角色删除成功';
+    }
+
+    //如果有必要,也可以删除枢纽表的同时删除关联模型,下面的例子在解除用户的编辑角色同时删除编辑这个角色身份
+    public function delete7($id){//http://localhost/tp5/public/index/demoObject/index/delete7/id/19
+        $user = UserModel::get($id);
+        $role = Role::getByName('editor');
+        //删除关联数据 同时删除关联模型数据
+        $user->roles()->detach($role,true);
+        return '用户&角色删除成功';
     }
 
 
 
-//3.关联更新
-//一对一的关联更新如下:
-    public function update6($id){//http://localhost/tp5/public/index/demoObject/index/update6/id/21
+
+//****************************************5.模型输出********************************************
+    /*
+    模型输出可以输出模型的实例对象为数组或者JSON
+    输出数组
+    隐藏属性
+    指定属性
+    追加属性
+    输出JSON
+    */
+
+
+
+//1.输出数组
+    public function readUser($id){//http://localhost/tp5/public/index/demoObject/index/readUser/id/21
         $user = UserModel::get($id);
-        $book = $user->bookList()->getByTitle('ThinkPHP开发手册');
-        $book->title = '幻想乡缘起';
-        if ($book->save()){
-            return '更新成功';
-        }else{
-            return '更新失败';
+        dump($user);
+    }
+
+//2.隐藏属性
+    //如果输出的时候需要隐藏某些属性,可以使用:
+    public function readUser1($id){//http://localhost/tp5/public/index/demoObject/index/readUser1/id/21
+        $user = UserModel::get($id);
+        dump($user->hidden(['create_time','update_time'])->toArray());
+    }
+
+//3.指定属性
+    //指定一些属性的输出
+    public function readUser2($id){//http://localhost/tp5/public/index/demoObject/index/readUser2/id/21
+        $user = UserModel::get($id);
+        dump($user->visible(['id','nickname','email'])->toArray());
+    }
+
+
+//4.追加属性
+    //如果定义了一些非数据库字段的读取,如:
+    //  User模型中对status添加修改器,如果我们需要输出user_status属性数据的话,可以使用append方法,如:
+    public function readUser3($id){//http://localhost/tp5/public/index/demoObject/index/readUser3/id/21
+        $user = UserModel::get($id);
+        dump($user->append(['user_status'])->toArray());
+        /*User模型需要添加以下修改器,设置参数读取
+        protected function getUserStatusAttr($value,$data){//status属性读取器    $data为自动导入的User模型数据
+        $status = [-1=>'删除',0=>'禁用',1=>'正常',2=>'待审核'];
+        return $status[$data['status']];//使用例子:控制器中直接调用,无需传参,模型自动获取echo $user->user_status.'<br />';
         }
+        */
     }
 
 
-//4.关联删除
-    //删除部分关联数据
-    public function delete6($id){//http://localhost/tp5/public/index/demoObject/index/delete6/id/21
+//5.输出JSON
+//对API开发而言,经常需要返回JSON格式的数据,修改read操作方法改成JSON输出
+
+//读取用户数据输出JSON
+    public function readUser4($id){//http://localhost/tp5/public/index/demoObject/index/readUser4/id/21
         $user = UserModel::get($id);
-        $book = $user->bookList()->getByTitle('ThinkPHP开发手册');
-        $book->delete();
+        echo $user->toJson();
+    }
+
+//或者采用更简单的方法输出JSON,下面方式等效:
+    public function readUser5($id){//http://localhost/tp5/public/index/demoObject/index/readUser5/id/21
+        echo UserModel::get($id);
     }
 
 
 
 
+//****************************************6.视图和模板********************************************
+/*
+前面只是在控制器方法里面直接输出而没有使用视图模板功能,从现在开始来了解如何把变量赋值到模板,并渲染输出,主要内容包括:
+模板输出
+分页输出
+公共模板
+模板定位
+模板布局
+标签定制
+输出替换
+渲染内容
+助手函数
+*/
+
+//注意:需要导入think\Controller和继承Controller,并且创建对应的模板(方法名+.html文件)
+
+//1.模板输出
+    //获取用户列表并输出,此处需要在view/index创建show.html文件,具体代码在文件中
+    public function show(){//http://localhost/tp5/public/index/demoObject/index/show
+        $list = UserModel::all();
+        $this->assign('list',$list);
+        $this->assign('count',count($list));
+        return $this->fetch();
+        /*
+        这里的控制器继承了\think\Controller类,该类对视图类的方法进行了封装,所以可以再无需实例化视图的情况下,直接调用视图类的相关方法,如
+
+        方法              描述
+        assign          模板变量复制
+        fetch           渲染模板文件
+        display         渲染内容
+        engine          初始化模板引擎
+        */
+        /*
+        其中assign和fetch是最常用的两个方法:
+            assign方法可以把任何类型的变量赋值给模板,关键在于模板中如何输出,不同的变量类型需要采用不同的标签输出
+            fetch方法默认渲染输出的模板文件应该是当前控制器和操作对应的模板,在上例中也就是application/demoObject/view/index/show.html
+        */
+
+        //具体调用和实现需结合show.html文件查看
+    }
+
+//2.分页输出
+    //获取用户列表并分页输出,此处需要在view/index创建showPage.html文件,具体代码在文件中
+    public function showPage(){//http://localhost/tp5/public/index/demoObject/index/showPage
+        //分页显示输出,每页显示3条数据
+        $list = UserModel::paginate(3);
+        $this->assign('list',$list);
+        return $this->fetch();
+
+        //具体调用和实现需结合showPage.html文件查看
+    }
+
+//3.公共模板
+//为了避免重复定义模板,可以把模板的公共的头部和尾部分离出来,便于维护
+/*
+把模板文件拆成三部分
+application/demoObject/view/index/header.html
+application/demoObject/view/index/indexBody.html
+application/demoObject/view/index/footer.html
+
+具体代码看文件
+*/
+    //使用公共头部尾部模板文件,其他和show.html一致
+    public function indexBody(){//http://localhost/tp5/public/index/demoObject/index/indexBody
+        $list = UserModel::all();
+        $this->assign('list',$list);
+        $this->assign('count',count($list));
+        return $this->fetch();
+    }
+
+//4.模板定位
+//fetch方法的第一个参数表示渲染的模板文件或者模板表达式
+//  通常使用模板表达式,而不需要使用完整的文件名
+
+//  模板文件名可以随意命名,如果把show.html文件改成:
+//      application/demoObject/view/index/list.html
+//      show操作方法中的fetch方法需要改成:
+//      return $this->fetch('list');
+
+//如果show操作方法中的fetch方法改成:
+//      return $this->fetch('user/list');
+//      那么实际的渲染模板文件则是:
+//      application/demoObject/view/user/list.html
+
+//当然,可以设置更多级别的目录
+
+//一些和模板定位相关的设置参数能够调整模板文件的位置和名称
+//  通常来说,模板相关的参数可以直接在配置文件中设置template参数,默认配置如下:
+/*
+
+    'template' => [
+        //模板引擎文件类型  支持  php think 支持扩展
+        'type' => 'Think',
+        //模板路径
+        'view_path' => '',
+        //模板后缀
+        'view_suffix' => '.html',
+        //模板文件名分隔符
+        'view_depr' => DS,
+        //模板引擎普通标签开始标记
+        'tpl_begin' => '{',
+        //模板引擎普通标签结束标记
+        'tpl_end' => '}',
+        //标签库标签开始标记
+        'taglib_begin' => '{',
+        //标签库标签结束标记
+        'taglib_end' => '}',
+    ],
+
+*/
+//view_path 参数决定了模板文件的根目录,如果没有设置的话系统会默认使用当前模块的视图目录view
+//  如果希望自定义模板文件的位置、命名和后缀,可以对模板文件参数稍加修改,如
+/*通过配置把当前渲染的模板文件移动到了    ROOT_PATH/template/index/user_index.tpl
+
+    'template' => [
+      //模板引擎文件类型  支持  php think 支持扩展
+      'type' => 'Think',
+      //模板路径
+      'view_path' => '../template/index/',
+      //模板后缀
+      'view_suffix' => '.tpl',
+      //模板文件名分隔符
+      'view_depr' => '_',
+     ],
+*/
 
 
+//5.模板布局
 
 
+//6.标签定制
 
 
+//7.输出替换
 
 
+//8.渲染内容
 
 
-
-
-
-
+//9.助手函数
 
 
 

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!--controller/index.php的show方法对应模板视图 -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查看用户列表</title>
+
+    <style>
+        body{
+            color: #333333;
+            font:16px Verdana,"Helvetica Neue",helvetica,Arial,'Microsoft YaHei',sans-serif;
+            margin: 0px;
+            padding: 20px;
+        }
+        a{
+            color: #868686;
+            cursor: pointer;
+        }
+        a:hover{
+            text-decoration: underline;
+        }
+        h2{
+            color: #4288ce;
+            font-weight: 400;
+            padding: 6px 0;
+            margin: 6px 0 0;
+            font-size: 28px;
+            border-bottom: 1px solid #EEEEEE;
+        }
+        div{
+            margin: 8px;
+        }
+        .info{
+            padding: 12px 0;
+            border-bottom: 1px solid #EEEEEE;
+        }
+        .copyright{
+            margin-top: 24px;
+            padding: 12px 0;
+            border-top: 1px solid #EEEEEE;
+        }
+
+    </style>
+</head>
+<body>
+<h2>用户列表({$count})</h2>
+{volist name="list" id="user"}
+<div class="info">
+    ID:{$user.id}<br />
+    昵称:{$user.nickname}<br />
+    邮箱:{$user.email}<br />
+    生日:{$user.birthday}<br />
+</div>
+{/volist}
+
+<div class="copyright">
+    <a title="官网" href="http://www.baidu.com"></a>
+    <span>V5</span>
+    <span>{测试超链接}</span>
+</div>
+</body>
+</html>
+
+<!--
+index中show方法给模板赋值了两个变量count和list,分别是标量和二维数组,
+标量的输出很简单,直接使用{$count}即可
+
+二维数组通常使用volist标签输出
+{volist name="list" id="user"}
+<div class="info">
+    ID:{$user.id}<br />
+    昵称:{$user.nickname}<br />
+    邮箱:{$user.email}<br />
+    生日:{$user.birthday}<br />
+</div>
+{/volist}
+
+volist标签的name属性就是模板变量的名称,id属性则是的意义每次循环输出的变量,
+    在volist标签中间使用{$user.id}表示输出当前用户的id属性,以此类推下面的内容则依次输出用户的相关属性
+-->

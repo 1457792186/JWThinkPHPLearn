@@ -1,0 +1,15 @@
+{include file="index/header" title="查看用户列表"/}
+<!--公共头部模板可能存在一些变量,
+    如:不同页面标题会有不同,可以添加title="xxx"定制,同时需要在头部模板文件中对应处修改为[title]-->
+
+<h2>用户列表({$count})</h2>
+{volist name="list" id="user"}
+<div class="info">
+    ID:{$user.id}<br />
+    昵称:{$user.nickname}<br />
+    邮箱:{$user.email}<br />
+    生日:{$user.birthday}<br />
+</div>
+{/volist}
+
+{include file="index/footer" /}
