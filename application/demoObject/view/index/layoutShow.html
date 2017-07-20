@@ -1,0 +1,43 @@
+{layout name="index/layout" /}
+<!--在模板文件中定义了layout标签,表示当前模板使用了布局,模板文件为layout.html
+        布局模板中的{__CONTENT__}会自动替换为解析后的layoutShow.html内容
+
+
+        如果布局模板中不是使用{__CONTENT__}的话,可以改成:
+        {layout name="layout/newlayout" replace="[__REPLACE__]" /}
+        那么对于的application/demoObject/view/layout/newlayout.html  内容如下:
+        {include file="index/header"/}
+            {__REPLACE__}
+        {include file="index/footer" /}
+
+
+        如果所有的模板文件都统一使用布局,并且都是有同一个布局模板,那么可以统一配置而不需要在模板文件中使用layout标签定义:
+        在应用配置或者模块配置中添加如下参数:
+            'template' => [
+              'layout_on' => true,
+              'layout_name' => 'layout',
+              'layout_item' => '[__REPLACE__]',
+             ],
+        此时,模板文件只需定义如下:
+        <h2>用户列表({$count})</h2>
+        {volist name="list" id="user"}
+        <div class="info">
+            ID:{$user.id}<br />
+            昵称:{$user.nickname}<br />
+            邮箱:{$user.email}<br />
+            生日:{$user.birthday}<br />
+        </div>
+        {/volist}
+
+        {include file="index/footer" /}
+-->
+
+<h2>用户列表({$count})</h2>
+{volist name="list" id="user"}
+<div class="info">
+    ID:{$user.id}<br />
+    昵称:{$user.nickname}<br />
+    邮箱:{$user.email}<br />
+    生日:{$user.birthday}<br />
+</div>
+{/volist}

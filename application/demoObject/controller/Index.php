@@ -959,9 +959,66 @@ application/demoObject/view/index/footer.html
 
 
 //5.模板布局
+//使用模板布局进一步简化模板定义
+
+//首先定义一个布局模板文件,放到application/demoObject/view/index/layout.html  内容如下:
+/*
+{include file="index/header"/}
+    {__CONTENT__}
+{include file="index/footer" /}
+*/
+    //之后定义模板文件layoutShow.html   位于application/demoObject/view/index/layoutShow.html
+    //具体内容见layoutShow.html,若要见全局配置内容也在layoutShow.html
+    public function layoutShow(){//http://localhost/tp5/public/index/demoObject/index/layoutShow
+        $list = UserModel::all();
+        $this->assign('list',$list);
+        $this->assign('count',count($list));
+
+        //如果想动态使用布局
+//        $this->view->engine->layout('index/layout','[__CONTENT__]');
+        //注意,这里调用的是$this->view->engine对象的layout方法,并不是所有的模板引擎都支持布局功能,如果使用的是其它的模板引擎,可能不提供layout方法
+        //如果配置方式开启了布局模板,也可以使用该方法临时关闭布局
+//        $this->view->engine->layout(false);   或者在模板文件(layoutSHow.html)开头加上{__NOLAYOUT__}标签
+
+        return $this->fetch();
+    }
 
 
 //6.标签定制
+//可以设置模板标签的定界符
+/*
+    'template' => [
+        //模板引擎文件类型  支持  php think 支持扩展
+        'type' => 'Think',
+        //模板路径
+        'view_path' => '../template/index/',
+        //模板后缀
+        'view_suffix' => '.html',
+        //模板文件名分隔符
+        'view_depr' => '_',
+        //模板引擎普通标签开始标记
+        'tpl_begin' => '{',
+        //模板引擎普通标签结束标记
+        'tpl_end' => '}',
+        //标签库标签开始标记
+        'taglib_begin' => '<',
+        //标签库标签结束标记
+        'taglib_end' => '>',
+    ],
+*/
+//并且修改layoutShow.html标签如下:
+/*
+<h2>用户列表({$count})</h2>
+<div class="info">
+{volist name="list" id="user"}
+    ID:{$user.id}<br />
+    昵称:{$user.nickname}<br />
+    邮箱:{$user.email}<br />
+    生日:{$user.birthday}<br />
+{/volist}
+</div>
+*/
+
 
 
 //7.输出替换
