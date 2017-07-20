@@ -1,0 +1,28 @@
+<!--把资源文件独立出来,并在模板文件中引入,如,增加public/static/common.css 文件
+    如此可以实现与header.html相同的效果
+    -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>[title]</title>
+
+    <!--
+        <link charset="utf-8" rel="stylesheet" href="/static/common.css">
+    -->
+
+    <!--
+        但是,如果部署的目录变化的话,资源文件的路径也会变化,所以采用替换输出,使得资源文件的引入动态化,所以修改固定地点代码为
+    -->
+    <link charset="utf-8" rel="stylesheet" href="__PUBLIC__/common.css">
+    <!--
+    //  调用时,可以在输出之前对解析后的内容进行替换
+        $this->view->replace([
+            '__PUBLIC__' => '/static',
+        ]);
+
+        最终输出的时候,会自动进行__PUBLIC__替换
+    -->
+</head>
+<body>

@@ -1022,14 +1022,166 @@ application/demoObject/view/index/footer.html
 
 
 //7.输出替换
+//为了更加清晰,需要把资源文件独立出来,并在模板文件中引入,如,增加public/static/common.css 文件
+/*
+body{
+            color: #333333;
+            font:16px Verdana,"Helvetica Neue",helvetica,Arial,'Microsoft YaHei',sans-serif;
+            margin: 0px;
+            padding: 20px;
+        }
+        a{
+            color: #868686;
+            cursor: pointer;
+        }
+        a:hover{
+            text-decoration: underline;
+        }
+        h2{
+            color: #4288ce;
+            font-weight: 400;
+            padding: 6px 0;
+            margin: 6px 0 0;
+            font-size: 28px;
+            border-bottom: 1px solid #EEEEEE;
+        }
+        div{
+            margin: 8px;
+        }
+        .info{
+            padding: 12px 0;
+            border-bottom: 1px solid #EEEEEE;
+        }
+        .copyright{
+            margin-top: 24px;
+            padding: 12px 0;
+            border-top: 1px solid #EEEEEE;
+        }
+*/
+
+//在headerStyle.html文件引入资源文件
+/*
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>[title]</title>
+
+    <link charset="utf-8" rel="stylesheet" href="/static/common.css">
+</head>
+<body>
+*/
+//在headerStyle.html引入资源文件,达到效果与header.html一致
+/*
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>[title]</title>
+
+    <link charset="utf-8" rel="stylesheet" href="/static/common.css">
+</head>
+<body>
+*/
+
+    public function styleShow(){//http://localhost/tp5/public/index/demoObject/index/styleShow
+        $list = UserModel::all();
+        $this->assign('list',$list);
+        $this->assign('count',count($list));
+
+        //但是,如果部署的目录变化的话,资源文件的路径也会变化,所以采用替换输出,使得资源文件的引入动态化
+        //  可以在输出之前对解析后的内容进行替换,最终输出的时候,会自动进行__PUBLIC__替换
+        $this->view->replace([
+            '__PUBLIC__' => '/static',
+        ]);
+        return $this->fetch();
+    }
+
+
 
 
 //8.渲染内容
+//有时候,并不需要模板文件,而是直接渲染内容或者读取数据库中存储的内容,控制器修改如下
+    public function displayShow(){//http://localhost/tp5/public/index/demoObject/index/displayShow
+        $list = UserModel::all();
+        $this->assign('list',$list);
+        $this->assign('count',count($list));
+
+
+        //$content与模板文件部分内容相似,需要将特殊字符转义和位置替换等
+        $content = <<<EOT
+              
+        <style>
+        body{
+            color: #333333;
+            font:16px Verdana,"Helvetica Neue",helvetica,Arial,'Microsoft YaHei',sans-serif;
+            margin: 0px;
+            padding: 20px;
+        }
+        a{
+            color: #868686;
+            cursor: pointer;
+        }
+        a:hover{
+            text-decoration: underline;
+        }
+        h2{
+            color: #4288ce;
+            font-weight: 400;
+            padding: 6px 0;
+            margin: 6px 0 0;
+            font-size: 28px;
+            border-bottom: 1px solid #EEEEEE;
+        }
+        div{
+            margin: 8px;
+        }
+        .info{
+            padding: 12px 0;
+            border-bottom: 1px solid #EEEEEE;
+        }
+        .copyright{
+            margin-top: 24px;
+            padding: 12px 0;
+            border-top: 1px solid #EEEEEE;
+        }
+
+    </style>
+    <h2>用户列表({\$count})</h2>
+    <div class="info">
+    {volist name="list" id="user"}
+        ID:{\$user.id}<br />
+        昵称:{\$user.nickname}<br />
+        邮箱:{\$user.email}<br />
+        生日:{\$user.birthday}<br />
+    {/volist}
+    </div>
+    
+    <div class="copyright">
+        <a title="官网" href="http://www.baidu.com"></a>
+        <span>V5</span>
+        <span>{测试超链接}</span>
+    </div>
+
+EOT;
+
+        return $this->display($content);
+        //display方法用于渲染内容而不是模板文件输出,和直接使用echo输出的区别是display方法输出的内容支持模板标签的解析
+    }
+
 
 
 //9.助手函数
+//可以使用系统提供的助手函数view简化模板渲染输出(注意不适用于内容渲染输出)
+//前面的模板渲染代码可以改为
+    public function helpShow($id=''){
+        //http://localhost/tp5/public/index/demoObject/index/helpShow/id/21
+        //未测试
+        $user = UserModel::get($id);
 
-
+        return view('',['user'=>$user],['__PUBLIC__' => '/static']);
+        //使用view助手函数,不需要继承think\Controller类。该方法的第一个参数就是渲染的模板表达式
+    }
 
 
 
