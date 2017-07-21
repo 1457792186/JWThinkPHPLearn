@@ -58,4 +58,5 @@ return [
     'demoObject/delete/:id'     => 'index/demoObject/index/delete',
     'demoObject/:id'            => 'index/demoObject/index/read',
 
+    ':version/user/id' => 'api/:version.User/read',
 ];
