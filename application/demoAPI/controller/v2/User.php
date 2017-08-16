@@ -10,7 +10,9 @@ class User{
         if ($user){
             return json($user);
         }else{
-            return json(["error" => "用户不存在"],404);
+            //接管Http异常处理后(exception下的Http.php文件处理),系统自动处理为json格式输出到客户端
+            //抛出Http异常,并发送404状态码
+            abort(404,'用户不存在');
         }
     }
 
