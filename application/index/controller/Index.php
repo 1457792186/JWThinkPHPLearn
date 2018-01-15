@@ -27,6 +27,7 @@ class Index
     }
     public function hello($name='Papi')
     {
+        dump(config());//输出配置文件信息
         return 'Hello,'.$name;
     }
 }
