@@ -21,7 +21,7 @@ return [
     // 应用Trace
     'app_trace'              => true,
     // 应用模式状态
-    'app_status'             => '',
+    'app_status'             => 'learn',//同文件夹下添加demo与learn进行环境设置,分别对应demo与learn不同设置
     // 是否支持多模块
     'app_multi_module'       => true,
     // 入口自动绑定模块
