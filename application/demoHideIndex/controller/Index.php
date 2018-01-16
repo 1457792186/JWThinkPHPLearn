@@ -2,16 +2,48 @@
 namespace app\demoHideIndex\controller;
 
 /*
+
+编辑apache 的配置文件 /etc/apache2/httpd.conf
+> sudo vim /etc/apache2/httpd.conf
+Apache的httpd.conf文件中
+
+1.开启重写
+#LoadModule rewrite_module libexec/apache2/mod_rewrite.so
+
+去除"#",开启配置
+LoadModule rewrite_module libexec/apache2/mod_rewrite.so
+
+2.配置重写
+// /Library/WebServer/Documents为对应文件路径
+DocumentRoot "/Library/WebServer/Documents"
+<Directory "/Library/WebServer/Documents">
+    AllowOverride None
+    Options None
+    Require all granted
+</Directory>
+
+//其中AllowOverride None改为AllowOverride All使其可以重写
+DocumentRoot "/Library/WebServer/Documents"
+<Directory "/Library/WebServer/Documents">
+    AllowOverride All
+    Options None
+    Require all granted
+</Directory>
+
+——————————————————————————————————————————————
+
 隐藏index.php
 
 可以去掉URL地址里面的入口文件index.php，但是需要额外配置WEB服务器的重写规则。
-以Apache为例，需要在入口文件的同级添加.htaccess文件（官方默认自带了该文件），内容如下：
+
+以Apache为例，需要在入口文件的同级添加.htaccess文件（官方默认自带了该文件,tp5/public/.htaccess），内容如下：
 <IfModule mod_rewrite.c>
 Options +FollowSymlinks -Multiviews
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]
+//此行表名隐藏index.php,自动改写index.php
 </IfModule>
 
 如果用的phpstudy，规则如下：
@@ -33,7 +65,10 @@ Options +FollowSymlinks -Multiviews
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
+
 RewriteRule ^(.*)$ index.php?/$1 [QSA,PT,L]
+//此行表名隐藏index.php,自动改写index.php
+
 </IfModule>
 
 如果是Nginx环境的话，可以在Nginx.conf中添加：
@@ -43,6 +78,19 @@ location / { // …..省略部分代码
         break;
     }
 }
+
+——————————————————————————————————————————————
+BIND_MODULE
+
+设置绑定Admin模块
+define('BIND_MODULE','Admin');
+使得http://localhost/admin.php/Public/product
+改为http://localhost/product
+
+注1:常用于Api等限制,只可绑定一个(BIND_MODULE不常用,除非为单模块项目)
+注2:可于入口绑定文件内设置,如tp5/public/index.php内
+注3:若开启了config.php内的auto_bind_module(入口自动绑定模块)为true,则自动绑定模块,一般不设置,默认为false
+
 */
 
 class Index
