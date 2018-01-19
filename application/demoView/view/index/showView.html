@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<p>{$Think.server.HTTP_HOST}</p>
+<!--若有.env文件,显示.env对应status配置-->
+<p>{$Think.env.PHP_STATUS}</p>
+<!--显示session参数-->
+<p>{$Think.session.email}</p>
+<!--显示cookie参数-->
+<p>{$Think.cookie.name}</p>
+
+<!--链接后加参数id,显示对应get请求值-->
+<p>{$Think.get.id}</p>
+<!--链接后加参数id,显示对应get请求值
+使用软件postman进行post请求尝试-->
+<p>{$Think.request.id}</p>
+<!--使用软件postman进行post请求尝试-->
+<p>{$Think.post.id}</p>
+
+<p>{$Think.const.APP_PATH}</p>
+<p>{$Think.APP_PATH}</p>
+
+
+<!--直接使用php语言-->
+<?php
+echo 2333;
+?>
+
+
+</body>
+</html>
